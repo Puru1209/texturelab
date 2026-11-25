@@ -9,8 +9,14 @@ from urllib.parse import quote
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from run_store import list_runs, load_run
+here = Path(__file__).resolve().parent
+sys.path.insert(0, str(here.parent))
+sys.path.insert(0, str(here.parent / "frontend"))
+
+try:
+    from run_store import list_runs, load_run
+except ImportError:
+    from frontend.run_store import list_runs, load_run
 
 st.set_page_config(page_title="TextureLab | Results", page_icon="◈", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
@@ -30,7 +36,13 @@ section[data-testid="stSidebar"] {background:#fff;}
 
 st.title("TextureLab | Results")
 if st.button("← Back to Analysis"):
-    st.switch_page("app.py")
+    try:
+        st.switch_page("streamlit_app.py")
+    except Exception:
+        try:
+            st.switch_page("app.py")
+        except Exception:
+            st.switch_page("frontend/app.py")
 
 runs = list_runs()
 if not runs:
@@ -49,7 +61,6 @@ if st.query_params.get("run") != chosen:
 
 with st.sidebar:
     st.subheader("Saved Analyses")
-    st.page_link("app.py", label="New Analysis", icon="➕")
     for number, item in enumerate(sorted(runs, key=lambda x: x["id"]), 1):
         rid = item["id"]
         label = f"Run {number} · {item.get('filename', 'Image')}"
