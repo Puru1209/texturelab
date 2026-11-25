@@ -315,9 +315,8 @@ if "pending_run_k" in st.session_state:
 
 if "active_run_id" in st.session_state:
     rid = st.session_state["active_run_id"]
-    st.success("Your latest run is saved. Open it in a new browser tab to keep the Analysis page available.")
-    st.markdown(f'<a href="/Results?run={quote(rid)}" target="_blank" rel="noopener noreferrer">Open latest Results page in a new tab ↗</a>', unsafe_allow_html=True)
-    if st.button("View Latest Results in This Tab", type="primary", use_container_width=True):
+    st.success("Your analysis has completed successfully! You can view the results below or open the permanent Results page.")
+    if st.button("Open Dedicated Results Page ↗", type="primary", use_container_width=True):
         st.query_params["run"] = rid
         try:
             st.switch_page("pages/2_Results.py")
@@ -326,6 +325,40 @@ if "active_run_id" in st.session_state:
                 st.switch_page("frontend/pages/2_Results.py")
             except Exception:
                 pass
+
+if "result_zip" in st.session_state:
+    st.divider()
+    st.header("⚡ Analysis Results")
+    import zipfile
+    try:
+        with zipfile.ZipFile(io.BytesIO(st.session_state["result_zip"])) as z:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                if "input.png" in z.namelist():
+                    st.image(z.read("input.png"), caption="Input Image", use_container_width=True)
+            with col2:
+                if "asm.png" in z.namelist():
+                    st.image(z.read("asm.png"), caption="ASM Feature Map", use_container_width=True)
+            with col3:
+                if "contrast.png" in z.namelist():
+                    st.image(z.read("contrast.png"), caption="Contrast Feature Map", use_container_width=True)
+            with col4:
+                if "mean.png" in z.namelist():
+                    st.image(z.read("mean.png"), caption="Mean Feature Map", use_container_width=True)
+
+            st.subheader("K-Means Clustered Map")
+            if "clusters.png" in z.namelist():
+                st.image(z.read("clusters.png"), caption="K-Means Clusters", use_container_width=True)
+
+            st.download_button(
+                "⬇ Download Complete Results ZIP",
+                data=st.session_state["result_zip"],
+                file_name=f"texturelab_results_{st.session_state.get('active_run_id', 'run')}.zip",
+                mime="application/zip",
+                type="primary"
+            )
+    except Exception as exc:
+        st.warning(f"Could not render preview: {exc}")
 
 st.divider()
 st.subheader("All Saved Analysis Pages")
