@@ -319,7 +319,13 @@ if "active_run_id" in st.session_state:
     st.markdown(f'<a href="/Results?run={quote(rid)}" target="_blank" rel="noopener noreferrer">Open latest Results page in a new tab ↗</a>', unsafe_allow_html=True)
     if st.button("View Latest Results in This Tab", type="primary", use_container_width=True):
         st.query_params["run"] = rid
-        st.switch_page("pages/2_Results.py")
+        try:
+            st.switch_page("pages/2_Results.py")
+        except Exception:
+            try:
+                st.switch_page("frontend/pages/2_Results.py")
+            except Exception:
+                pass
 
 st.divider()
 st.subheader("All Saved Analysis Pages")
